@@ -89,6 +89,43 @@ def make_text_note(content: str, privkey_bytes: bytes) -> NostrEvent:
     return sign_event(event, privkey_bytes)
 
 
+def verify_event(event_dict: dict) -> bool:
+    """Verify a NIP-01 event: recompute id and validate Schnorr signature.
+
+    Returns True if the event id and signature are valid, False otherwise.
+    """
+    try:
+        pubkey = event_dict["pubkey"]
+        sig_hex = event_dict["sig"]
+        event_id = event_dict["id"]
+
+        # Step 1: recompute the event id
+        serialized = json.dumps(
+            [
+                0,
+                pubkey,
+                event_dict["created_at"],
+                event_dict["kind"],
+                event_dict["tags"],
+                event_dict["content"],
+            ],
+            separators=(",", ":"),
+            ensure_ascii=False,
+        )
+        computed_id = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+        # Step 2: id must match
+        if computed_id != event_id:
+            return False
+
+        # Step 3: verify Schnorr signature (secp256k1 x-only pubkey — prepend 0x02)
+        pub = secp256k1.PublicKey(bytes.fromhex("02" + pubkey), raw=True)
+        sig_bytes = bytes.fromhex(sig_hex)
+        return pub.schnorr_verify(bytes.fromhex(event_id), sig_bytes, raw=True)
+    except Exception:
+        return False
+
+
 def make_reaction(event_id: str, event_pubkey: str, content: str, privkey_bytes: bytes) -> NostrEvent:
     """Create and sign a kind:7 reaction."""
     event = NostrEvent(

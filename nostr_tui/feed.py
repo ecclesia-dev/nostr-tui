@@ -13,7 +13,7 @@ from textual.widget import Widget
 from textual.widgets import Static
 
 IMAGE_URL_RE = re.compile(
-    r"https?://\S+\.(?:png|jpg|jpeg|gif|webp|bmp|svg)(?:\?\S*)?",
+    r"https://\S+\.(?:png|jpg|jpeg|gif|webp|bmp|svg)(?:\?\S*)?",
     re.IGNORECASE,
 )
 

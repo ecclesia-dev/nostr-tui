@@ -18,6 +18,7 @@ from nostr_tui.events import (
     event_to_json,
     make_text_note,
     nsec_to_privkey_bytes,
+    verify_event,
 )
 from nostr_tui.feed import FeedWidget, NoteWidget
 from nostr_tui.images import upload_image_nip96
@@ -239,6 +240,12 @@ class NostrTuiApp(App):
         if msg_type == "EVENT" and len(data) >= 3:
             event = data[2]
             if isinstance(event, dict) and event.get("kind") == 1:
+                if not verify_event(event):
+                    self.log.warning(
+                        "Dropped event with invalid signature: id=%s",
+                        event.get("id", "<unknown>"),
+                    )
+                    return
                 feed = self.query_one("#feed", FeedWidget)
                 feed.add_note(event)
 
