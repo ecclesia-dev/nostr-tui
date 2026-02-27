@@ -1,5 +1,6 @@
 *.env
-*.toml
+# Ignore user config (contains nsec) but not project TOML files
+config.toml
 __pycache__/
 *.pyc
 .venv/

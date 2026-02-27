@@ -1,0 +1,10 @@
+[nostr]
+nsec = "nsec1..."
+relays = [
+  "wss://relay.damus.io",
+  "wss://nos.lol",
+]
+
+[display]
+image_protocol = "sixel"  # sixel | ascii | kitty
+max_image_height = 20
