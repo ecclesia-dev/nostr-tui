@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
+from textual.message import Message
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Static
@@ -29,9 +30,20 @@ class NoteWidget(Static):
     }
     """
 
+    class NoteSelected(Message):
+        """Fired when a note is clicked. Bubbles to app for zap targeting."""
+
+        def __init__(self, note_event: dict) -> None:
+            super().__init__()
+            self.note_event = note_event
+
     def __init__(self, event: dict, **kwargs) -> None:
         self.event = event
         super().__init__(**kwargs)
+
+    def on_click(self) -> None:
+        """Select this note (e.g. for zapping)."""
+        self.post_message(self.NoteSelected(self.event))
 
     def compose(self) -> ComposeResult:
         pubkey = self.event.get("pubkey", "")[:12]

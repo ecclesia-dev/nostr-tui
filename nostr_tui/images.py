@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 import tempfile
 from pathlib import Path
@@ -59,15 +60,21 @@ def render_image_url(url: str, max_height: int = 20, protocol: str = "sixel") ->
         return f"[image: {url}] (install chafa for inline images)"
     except Exception:
         pass
+    finally:
+        os.unlink(tmp_path)
 
     return f"[image: {url}]"
 
 
-def upload_image_nip96(filepath: str) -> str:
-    """Upload an image file to nostr.build via NIP-96.
+def upload_image_nip96(
+    filepath: str,
+    upload_url: str = NIP96_UPLOAD_URL,
+) -> str:
+    """Upload an image file via NIP-96.
 
     Args:
         filepath: Local path to the image file.
+        upload_url: NIP-96 upload endpoint (defaults to nostr.build).
 
     Returns:
         The public URL of the uploaded image.
@@ -81,12 +88,12 @@ def upload_image_nip96(filepath: str) -> str:
 
     with open(path, "rb") as f:
         resp = requests.post(
-            NIP96_UPLOAD_URL,
+            upload_url,
             files={"file": (path.name, f)},
             timeout=60,
         )
 
-    if resp.status_code != 200:
+    if resp.status_code not in (200, 201):
         raise RuntimeError(f"Upload failed: HTTP {resp.status_code}")
 
     data = resp.json()

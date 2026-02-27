@@ -8,3 +8,7 @@ relays = [
 [display]
 image_protocol = "sixel"  # sixel | ascii | kitty
 max_image_height = 20
+
+[upload]
+# NIP-96 upload server — change to your preferred host
+# server = "https://nostr.build/api/v2/upload/files"

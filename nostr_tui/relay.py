@@ -33,6 +33,7 @@ class RelayPool:
         self._tasks: list[asyncio.Task] = []
         self._callbacks: list[EventCallback] = []
         self._running = False
+        self._current_sub_id: str | None = None
 
     def on_event(self, callback: EventCallback) -> None:
         self._callbacks.append(callback)
@@ -79,7 +80,11 @@ class RelayPool:
 
     async def subscribe(self, filters: dict) -> str:
         """Send a REQ to all connected relays. Returns the subscription id."""
+        if self._current_sub_id is not None:
+            close_msg = json.dumps(["CLOSE", self._current_sub_id], separators=(",", ":"))
+            await self._send_all(close_msg)
         sub_id = uuid.uuid4().hex[:16]
+        self._current_sub_id = sub_id
         req = json.dumps(["REQ", sub_id, filters], separators=(",", ":"))
         await self._send_all(req)
         return sub_id
@@ -97,8 +102,8 @@ class RelayPool:
 
     async def wait_connected(self, timeout: float = 10.0) -> bool:
         """Wait until at least one relay is connected."""
-        deadline = asyncio.get_event_loop().time() + timeout
-        while asyncio.get_event_loop().time() < deadline:
+        deadline = asyncio.get_running_loop().time() + timeout
+        while asyncio.get_running_loop().time() < deadline:
             if self._connections:
                 return True
             await asyncio.sleep(0.2)

@@ -111,7 +111,8 @@ class NostrTuiApp(App):
                 content = f"{content}\n{url}"
                 self.notify("Image uploaded")
             except Exception as e:
-                self.notify(f"Image upload failed: {e}", severity="error")
+                self.notify(f"Image upload failed: {e} — post cancelled", severity="error")
+                return
 
         note = make_text_note(content, self._privkey_bytes)
         event_json = event_to_json(note)
